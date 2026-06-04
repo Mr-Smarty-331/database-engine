@@ -1,0 +1,4 @@
+/Users/ayushraj/Desktop/projects/kvstore/build/CMakeFiles/kvstore_lib.dir
+/Users/ayushraj/Desktop/projects/kvstore/build/CMakeFiles/kvstore_main.dir
+/Users/ayushraj/Desktop/projects/kvstore/build/CMakeFiles/edit_cache.dir
+/Users/ayushraj/Desktop/projects/kvstore/build/CMakeFiles/rebuild_cache.dir

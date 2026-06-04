@@ -1,0 +1,2 @@
+/usr/bin/ar qc libkvstore_lib.a CMakeFiles/kvstore_lib.dir/src/slice.cpp.o
+/usr/bin/ranlib libkvstore_lib.a

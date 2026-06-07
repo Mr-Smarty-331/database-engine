@@ -6,7 +6,9 @@ set(CMAKE_CXX_STANDARD 17)
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-add_library(kvstore_lib src/slice.cpp)
+include(FetchContent)
+
+add_library(kvstore_lib src/slice.cpp src/status.cpp)
 
 target_include_directories(kvstore_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 

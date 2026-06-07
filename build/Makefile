@@ -190,6 +190,30 @@ src/slice.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/kvstore_lib.dir/build.make CMakeFiles/kvstore_lib.dir/src/slice.cpp.s
 .PHONY : src/slice.cpp.s
 
+src/status.o: src/status.cpp.o
+.PHONY : src/status.o
+
+# target to build an object file
+src/status.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/kvstore_lib.dir/build.make CMakeFiles/kvstore_lib.dir/src/status.cpp.o
+.PHONY : src/status.cpp.o
+
+src/status.i: src/status.cpp.i
+.PHONY : src/status.i
+
+# target to preprocess a source file
+src/status.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/kvstore_lib.dir/build.make CMakeFiles/kvstore_lib.dir/src/status.cpp.i
+.PHONY : src/status.cpp.i
+
+src/status.s: src/status.cpp.s
+.PHONY : src/status.s
+
+# target to generate assembly for a file
+src/status.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/kvstore_lib.dir/build.make CMakeFiles/kvstore_lib.dir/src/status.cpp.s
+.PHONY : src/status.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -206,6 +230,9 @@ help:
 	@echo "... src/slice.o"
 	@echo "... src/slice.i"
 	@echo "... src/slice.s"
+	@echo "... src/status.o"
+	@echo "... src/status.i"
+	@echo "... src/status.s"
 .PHONY : help
 
 

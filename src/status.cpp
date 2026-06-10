@@ -5,9 +5,6 @@
 
 namespace kvstore {
 
-// --- Copy and Move Implementations ---
-
-// Copy constructor implementation.
 Status::Status(const Status& rhs) {
     // If rhs.state_ is nullptr, our state_ will be nullptr (from default initialization).
     // Otherwise, we create a deep copy.

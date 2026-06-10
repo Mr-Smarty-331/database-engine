@@ -8,6 +8,16 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include(FetchContent)
 
+FetchContent_Declare(
+  googletest
+  GIT_REPOSITORY https://github.com/google/googletest.git
+  GIT_TAG    release-1.12.1
+)
+
+FetchContent_MakeAvailable(googletest)
+
+enable_testing()
+
 add_library(kvstore_lib src/slice.cpp src/status.cpp)
 
 target_include_directories(kvstore_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
@@ -15,3 +25,5 @@ target_include_directories(kvstore_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/includ
 add_executable(kvstore_main src/main.cpp)	
 
 target_link_libraries(kvstore_main PRIVATE kvstore_lib)
+
+add_subdirectory(tests)

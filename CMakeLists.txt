@@ -30,7 +30,7 @@ FetchContent_MakeAvailable(googletest crc32c)
 
 enable_testing()
 
-add_library(kvstore_lib src/slice.cpp src/status.cpp src/log_writer.cpp src/crc32c.cpp src/coding.cpp src/log_reader.cpp)
+add_library(kvstore_lib src/slice.cpp src/status.cpp src/log_writer.cpp src/crc32c.cpp src/coding.cpp src/log_reader.cpp src/memtable.cpp)
 
 target_link_libraries(kvstore_lib PUBLIC crc32c)
 

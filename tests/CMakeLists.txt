@@ -1,6 +1,8 @@
 add_executable(kvstore_tests
     slice_test.cpp
     status_test.cpp
+    skiplist_test.cpp
+    memtable_test.cpp
 )
 
 # Linking our test executable against our main library (kvstore_lib)

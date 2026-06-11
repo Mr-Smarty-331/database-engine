@@ -3,8 +3,8 @@
 #include "kvstore/status.h"
 #include "kvstore/slice.h"
 
-struct _IO_FILE;
-typedef struct _IO_FILE FILE;
+#include <cstdio>
+#include "kvstore/log_format.h"
 
 namespace kvstore{
 namespace log{

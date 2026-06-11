@@ -7,8 +7,7 @@
 #include "kvstore/status.h"
 #include "kvstore/log_format.h"
 
-struct _IO_FILE;
-typedef struct _IO_FILE FILE;
+#include <cstdio>
 
 namespace kvstore {
 namespace log {
@@ -25,8 +24,7 @@ public:
     bool ReadRecord(Slice* record, std::string* scratch, Status* status);
 
 private:
-    RecordType ReadPhysicalRecord(Slice* result);
-
+    RecordType ReadPhysicalRecord(Slice* result, Status* status);
     FILE* const file_;
     
     // Buffer for holding one block read from the file.

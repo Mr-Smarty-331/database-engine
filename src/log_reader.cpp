@@ -1,6 +1,8 @@
 #include "kvstore/log_reader.h"
 
 #include <cstdio>
+#include "kvstore/status.h"
+#include "kvstore/crc32c.h"
 #include "kvstore/coding.h"
 
 namespace kvstore {
@@ -14,24 +16,27 @@ Reader::Reader(FILE* file)
 
 Reader::~Reader() = default;
 
+// The ReadRecord method remains unchanged from the previous step.
+// Its logic for handling the return values of ReadPhysicalRecord is already correct.
 bool Reader::ReadRecord(Slice* record, std::string* scratch, Status* status) {
     scratch->clear();
     bool in_fragmented_record = false;
 
     while (true) {
-        // Read the next physical record fragment.
         Slice fragment;
-        const RecordType type = ReadPhysicalRecord(&fragment);
+        const RecordType type = ReadPhysicalRecord(&fragment, status);
         
+        // --- NEW: Check status immediately after reading a physical record ---
+        if (!status->ok()) {
+            return false;
+        }
+
         switch (type) {
             case kFullType:
                 if (in_fragmented_record) {
-                    // This indicates corruption or an error, as we were in the middle
-                    // of a fragmented record but received a full record.
                     *status = Status::Corruption("Partial record without end fragment");
                     return false;
                 }
-                // A complete record was read.
                 *record = fragment;
                 return true;
 
@@ -40,7 +45,6 @@ bool Reader::ReadRecord(Slice* record, std::string* scratch, Status* status) {
                     *status = Status::Corruption("Another start fragment inside a record");
                     return false;
                 }
-                // Start of a new fragmented record. Append the fragment to scratch.
                 scratch->assign(fragment.data(), fragment.size());
                 in_fragmented_record = true;
                 break;
@@ -50,7 +54,6 @@ bool Reader::ReadRecord(Slice* record, std::string* scratch, Status* status) {
                     *status = Status::Corruption("Middle fragment without a start");
                     return false;
                 }
-                // A middle fragment. Append it to the scratch space.
                 scratch->append(fragment.data(), fragment.size());
                 break;
 
@@ -59,18 +62,15 @@ bool Reader::ReadRecord(Slice* record, std::string* scratch, Status* status) {
                     *status = Status::Corruption("Last fragment without a start");
                     return false;
                 }
-                // The final fragment. Append it, set the record slice, and return.
                 scratch->append(fragment.data(), fragment.size());
                 *record = Slice(*scratch);
                 return true;
 
             case kZeroType:
-                // This indicates EOF or a corruption that ReadPhysicalRecord handled.
-                // If we are in a fragmented record, it's an unexpected EOF.
                 if (in_fragmented_record) {
                     *status = Status::Corruption("EOF in middle of a fragmented record");
                 }
-                return false; // Return false for EOF.
+                return false; 
             
             default:
                 *status = Status::Corruption("Unknown record type");
@@ -79,48 +79,56 @@ bool Reader::ReadRecord(Slice* record, std::string* scratch, Status* status) {
     }
 }
 
-RecordType Reader::ReadPhysicalRecord(Slice* result) {
-    // Loop until we find a record or hit a hard error.
+// --- MODIFIED: The method signature and implementation are updated ---
+RecordType Reader::ReadPhysicalRecord(Slice* result, Status* status) {
     while (true) {
         if (backing_store_.size() < kHeaderSize) {
             if (!eof_) {
-                // Read the next block from the file into our buffer.
                 size_t bytes_read = fread(buffer_, 1, kBlockSize, file_);
                 if (bytes_read > 0) {
                     backing_store_ = Slice(buffer_, bytes_read);
                 } else {
                     eof_ = true;
-                    backing_store_.remove_prefix(backing_store_.size()); // Make buffer empty
+                    backing_store_.remove_prefix(backing_store_.size());
                 }
-                continue; // Retry reading the record from the newly filled buffer.
+                continue;
             } else {
-                // We are at the end of the file and have no more data.
                 return kZeroType;
             }
         }
 
-        // We have enough data for a header. Parse it.
         const char* header = backing_store_.data();
+        const uint32_t stored_crc = DecodeFixed32(header);
         const uint16_t length = DecodeFixed16(header + 4);
         const unsigned char type_val = header[6];
 
-        // Check if the entire physical record fits in our current buffer.
         if (kHeaderSize + length > backing_store_.size()) {
-            // Not enough data for the full payload. This implies corruption or
-            // an incomplete write at the end of the file.
+            // Not enough data for the full payload. Treat as corruption.
+            *status = Status::Corruption("Log record payload is truncated");
+            return kZeroType;
+        }
+
+        // --- NEW: The core validation logic ---
+        // 1. Unmask the checksum we read from the header.
+        uint32_t expected_crc = crc32c::Unmask(stored_crc);
+
+        // 2. Calculate the actual checksum of the data (type + payload).
+        uint32_t actual_crc = crc32c::Value(&header[6], 1); // Checksum for the type byte
+        actual_crc = crc32c::Extend(actual_crc, header + kHeaderSize, length); // Extend with payload
+
+        // 3. Compare them.
+        if (actual_crc != expected_crc) {
+            // Mismatch! The data is corrupt. Report the error and return.
+            *status = Status::Corruption("Checksum mismatch in log record");
             return kZeroType;
         }
         
-        // For now, we only support the known record types.
         if (type_val < kFullType || type_val > kLastType) {
-            // Unrecognized record type, indicates corruption.
+            *status = Status::Corruption("Unknown record type found in log");
             return kZeroType;
         }
 
-        // Set the result slice to point to the payload.
         *result = Slice(header + kHeaderSize, length);
-
-        // Advance the backing_store_ past this physical record.
         backing_store_.remove_prefix(kHeaderSize + length);
 
         return static_cast<RecordType>(type_val);
@@ -128,4 +136,4 @@ RecordType Reader::ReadPhysicalRecord(Slice* result) {
 }
 
 } // namespace log
-}
+} // namespace kvstore

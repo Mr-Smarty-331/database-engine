@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <cstdio> 
 #include <unistd.h> 
+#include <cassert> 
 
 #include "kvstore/coding.h" 
 #include "kvstore/log_format.h"

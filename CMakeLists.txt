@@ -1,4 +1,7 @@
-cmake_minimum_required(VERSION 3.15)
+cmake_minimum_required(VERSION 3.10)
+
+set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
+set(CMAKE_OSX_DEPLOYMENT_TARGET "26.0")
 
 project(kvstore VERSION 1.0 LANGUAGES CXX)
 
@@ -19,6 +22,9 @@ FetchContent_Declare(
   GIT_REPOSITORY https://github.com/google/crc32c.git
   GIT_TAG        1.1.2
 )
+
+set(CRC32C_BUILD_TESTS OFF CACHE INTERNAL "")
+set(CRC32C_BUILD_BENCHMARKS OFF CACHE INTERNAL "")
 
 FetchContent_MakeAvailable(googletest crc32c)
 

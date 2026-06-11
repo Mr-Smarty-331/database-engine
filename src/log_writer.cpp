@@ -4,6 +4,8 @@
 
 #include <cstdint>
 #include <cstdio> 
+#include <unistd.h> 
+
 #include "kvstore/coding.h" 
 #include "kvstore/log_format.h"
 #include "kvstore/crc32c.h"
@@ -113,7 +115,14 @@ Status Writer::EmitPhysicalRecord(RecordType t, const char* ptr, size_t n) {
     }
 
     // 5. Ensure data is passed to the OS buffer.
-    fflush(dest_);
+    if (fflush(dest_) != 0) {
+        // We add error checking for this call.
+        return Status::IOError("fflush failed on log file");
+    }
+    if (fsync(fileno(dest_)) != 0) {
+        // We also add error checking for this critical system call.
+        return Status::IOError("fsync failed on log file");
+    }
 
     // 6. Update our position in the block.
     block_offset_ += kHeaderSize + n;

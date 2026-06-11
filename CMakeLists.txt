@@ -14,11 +14,20 @@ FetchContent_Declare(
   GIT_TAG    release-1.12.1
 )
 
-FetchContent_MakeAvailable(googletest)
+FetchContent_Declare(
+  crc32c
+  GIT_REPOSITORY https://github.com/google/crc32c.git
+  GIT_TAG        1.1.2
+)
+
+FetchContent_MakeAvailable(googletest crc32c)
 
 enable_testing()
 
-add_library(kvstore_lib src/slice.cpp src/status.cpp)
+add_library(kvstore_lib src/slice.cpp src/status.cpp src/log_writer.cpp src/crc32c.cpp)
+
+target_link_libraries(kvstore_lib PUBLIC crc32c)
+
 
 target_include_directories(kvstore_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 

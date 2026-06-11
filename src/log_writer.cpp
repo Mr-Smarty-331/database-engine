@@ -13,13 +13,6 @@
 namespace kvstore {
 namespace log {
 
-inline void EncodeFixed32(char* buf, uint32_t value) {
-    memcpy(buf, &value, sizeof(value));
-}
-
-inline void EncodeFixed16(char* buf, uint16_t value) {
-    memcpy(buf, &value, sizeof(value));
-}
 
 Writer::Writer(FILE* dest) : dest_(dest), block_offset_(0) {
 }
